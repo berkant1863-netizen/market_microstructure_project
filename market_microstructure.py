@@ -7,12 +7,6 @@ import matplotlib.pyplot as plt
 
 from datetime import datetime, timezone
 
-
-
-# ==========================================
-# 1. SETTINGS
-# ==========================================
-
 # Data Collection
 COLLECT_NEW_DATA = False
 CSV_FILE = "btcusdt_final_test.csv"
@@ -27,18 +21,13 @@ UPPER_THRESHOLD = 0.95
 LOWER_THRESHOLD = -0.95
 OFI_THRESHOLD = 0.001
 
-
-# ==========================================
-# 2. BINANCE API
-# ==========================================
-
+#BINANCE API
 url = "https://api.binance.com/api/v3/depth"
 
 params = {
     "symbol": "BTCUSDT",
     "limit": 5
 }
-
 
 def get_orderbook():
 
@@ -60,11 +49,7 @@ def get_orderbook():
         "ask_volume": float(data["asks"][0][1])
     }
 
-
-# ==========================================
-# 3. FEATURE CALCULATION
-# ==========================================
-
+#FEATURE CALCULATE
 def calculate_features(book):
 
     bid = book["bid_price"]
@@ -73,25 +58,20 @@ def calculate_features(book):
     bid_volume = book["bid_volume"]
     ask_volume = book["ask_volume"]
 
-    # Spread
     spread = round(ask - bid, 2)
-
-    # Midprice
+    
     midprice = (bid + ask) / 2
-
-    # Total volume
+    
     total_volume = bid_volume + ask_volume
 
     if total_volume <= 0:
         raise ValueError("Toplam hacim sifir")
 
-    # Order Book Imbalance
     obi = (
         (bid_volume - ask_volume)
         / total_volume
     )
 
-    # Microprice
     microprice = (
         ask * bid_volume
         + bid * ask_volume
@@ -104,14 +84,8 @@ def calculate_features(book):
         "microprice": microprice
     }
 
-
-# ==========================================
-# 4. ORDER FLOW IMBALANCE
-# ==========================================
-
+#ORDER FLOW IMBALABCE
 def calculate_ofi(old_book, new_book):
-
-    # BID SIDE
 
     if new_book["bid_price"] > old_book["bid_price"]:
 
@@ -127,8 +101,6 @@ def calculate_ofi(old_book, new_book):
             new_book["bid_volume"]
             - old_book["bid_volume"]
         )
-
-    # ASK SIDE
 
     if new_book["ask_price"] < old_book["ask_price"]:
 
@@ -147,11 +119,7 @@ def calculate_ofi(old_book, new_book):
 
     return bid_ofi + ask_ofi
 
-
-# ==========================================
-# 5. DATA COLLECTION
-# ==========================================
-
+#DATA COLLECTİON
 def collect_data():
 
     old_book = None
@@ -185,17 +153,14 @@ def collect_data():
 
                 book = get_orderbook()
 
-                # Tekrar eden snapshot'lari atla
                 if (
                     old_book is not None
                     and book["update_id"] <= old_book["update_id"]
                 ):
                     continue
 
-                # Feature calculation
                 features = calculate_features(book)
 
-                # OFI calculation
                 if old_book is None:
 
                     ofi = None
@@ -207,12 +172,10 @@ def collect_data():
                         book
                     )
 
-                # Timestamp
                 timestamp = datetime.now(
                     timezone.utc
                 ).isoformat()
 
-                # CSV row
                 writer.writerow([
                     timestamp,
                     book["update_id"],
@@ -248,25 +211,17 @@ def collect_data():
 
     print("Data collection tamamlandi!")
 
-
-# ==========================================
-# 6. PANDAS DATA ANALYSIS
-# ==========================================
-
+#PANDAS DATA ANALYSIS
 if COLLECT_NEW_DATA:
 
     collect_data()
-
 
 df = pd.read_csv(CSV_FILE)
 
 print("\nDATASET:")
 print(df.head())
 
-
-# ==========================================
-# 7. DATA CLEANING
-# ==========================================
+#DATA CLEANING
 
 df["timestamp"] = pd.to_datetime(
     df["timestamp"],
@@ -277,17 +232,12 @@ df = df.sort_values(
     "timestamp"
 ).reset_index(drop=True)
 
-# Spread hassasiyetini duzelt
 df["spread"] = df["spread"].round(2)
 
 print("\nSPREAD VALUES:")
 print(df["spread"].value_counts())
 
-
-# ==========================================
-# 8. MIDPRICE CHANGE ANALYSIS
-# ==========================================
-
+#MIDPRICE CHANGE ANALYSIS
 df["next_midprice"] = (
     df["midprice"].shift(-1)
 )
@@ -307,20 +257,12 @@ print(
     ]].head(10)
 )
 
-
-# ==========================================
-# 9. MICROPRICE SIGNAL
-# ==========================================
-
+#MICROPRICE SIGNAL
 df["microprice_signal"] = (
     df["microprice"] - df["midprice"]
 )
 
-
-# ==========================================
-# 10. FEATURE CORRELATION ANALYSIS
-# ==========================================
-
+#FEATURE CORRELATION ANALYSIS
 features = [
     "spread",
     "obi",
@@ -336,7 +278,6 @@ print("\nFEATURE CORRELATIONS:")
 
 for feature in features:
 
-    # Sabit feature icin korelasyon tanimsizdir
     if analysis_df[feature].nunique() <= 1:
 
         print(feature, "correlation: undefined")
@@ -353,11 +294,7 @@ for feature in features:
             round(correlation, 4)
         )
 
-
-# ==========================================
-# 11. DESCRIPTIVE STATISTICS
-# ==========================================
-
+#DESCRIPTIVE STATISTICS
 print("\nTOTAL OBSERVATIONS:")
 print(len(analysis_df))
 
@@ -369,11 +306,7 @@ print(
     ].describe()
 )
 
-
-# ==========================================
 # 12. MIDPRICE MOVEMENT CHECK
-# ==========================================
-
 total = len(analysis_df)
 
 unchanged = (
@@ -396,12 +329,8 @@ if total > 0:
         round(unchanged_pct, 2),
         "%"
     )
-
-
-# ==========================================
+    
 # 13. FEATURE VISUALIZATION
-# ==========================================
-
 for feature in features:
 
     plt.figure(figsize=(8, 5))
@@ -432,23 +361,17 @@ for feature in features:
 
     plt.show()
 
-
-
-
-# ==========================================
 # 14. MULTI-FEATURE SIGNAL GENERATION
-# ==========================================
-
 analysis_df["signal"] = 0
 
-# LONG
+#LONG
 analysis_df.loc[
     (analysis_df["obi"] > UPPER_THRESHOLD)
     & (analysis_df["ofi"] > OFI_THRESHOLD),
     "signal"
 ] = 1
 
-# SHORT
+#SHORT
 analysis_df.loc[
     (analysis_df["obi"] < LOWER_THRESHOLD)
     & (analysis_df["ofi"] < -OFI_THRESHOLD),
@@ -456,19 +379,12 @@ analysis_df.loc[
 ] = -1
 
 print("\n===== TRADING SIGNALS =====")
-
 print(analysis_df["signal"].value_counts())
 
 
-
-# ==========================================
 # 15. MULTIPLE TRADES BACKTEST
-# ==========================================
-
-# Islem sonuclarini saklayacagimiz liste
 trades = []
 
-# Sinyalleri df index'i ile hizala
 signals = analysis_df["signal"].reindex(
     df.index,
     fill_value=0
@@ -480,17 +396,14 @@ while i < len(df) - 2:
 
     signal = signals.iloc[i]
 
-    # Sinyal yoksa sonraki snapshot'a gec
     if signal == 0:
 
         i = i + 1
         continue
 
-    # Giris ve cikis snapshot'lari
     entry = df.iloc[i + 1]
     exit_book = df.iloc[i + 2]
 
-    # LONG TRADE
     if signal == 1:
 
         entry_price = entry["ask_price"]
@@ -500,7 +413,6 @@ while i < len(df) - 2:
             exit_price - entry_price
         ) * QUANTITY
 
-    # SHORT TRADE
     elif signal == -1:
 
         entry_price = entry["bid_price"]
@@ -509,8 +421,6 @@ while i < len(df) - 2:
         gross_pnl = (
             entry_price - exit_price
         ) * QUANTITY
-
-    # TRANSACTION COSTS
 
     entry_fee = (
         entry_price * QUANTITY * FEE_RATE
@@ -522,10 +432,8 @@ while i < len(df) - 2:
 
     total_fee = entry_fee + exit_fee
 
-    # NET PNL
     net_pnl = gross_pnl - total_fee
 
-    # ISLEM KAYDI
     trades.append({
         "signal_time": df.iloc[i]["timestamp"],
         "entry_time": entry["timestamp"],
@@ -538,15 +446,10 @@ while i < len(df) - 2:
         "total_fee": total_fee,
         "net_pnl": net_pnl
     })
-
-    # Pozisyon kapanana kadarki sinyalleri atla
+    
     i = i + 2
 
-
-# ==========================================
 # 16. BACKTEST RESULTS
-# ==========================================
-
 trades_df = pd.DataFrame(trades)
 
 if not trades_df.empty:
