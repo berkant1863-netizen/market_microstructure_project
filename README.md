@@ -1,6 +1,6 @@
 BTCUSDT Market Microstructure Research
 
-This project investigates the ability of Order Book Imbalance (OBI) to predict short-term price movements using Binance BTCUSDT order book data, and whether this predictive information can be translated into a profitable trading strategy after transaction costs.
+This project investigates the ability of Order Book Imbalance to predict short term price movements using Binance BTCUSDT order book data, and whether this predictive information can be translated into a profitable trading strategy after transaction costs.
 
 Order book data was collected using Python and the Binance REST API. Key market microstructure features, including OBI, OFI, bid-ask spread, midprice, and microprice, were calculated. Their relationships with future price movements were examined through correlation analysis, signal decay analysis, and backtesting.
 
