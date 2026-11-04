@@ -1,13 +1,34 @@
-BTCUSDT Market Microstructure Research
+# BTCUSDT Market Microstructure Research
 
-This project investigates the ability of Order Book Imbalance to predict short term price movements using Binance BTCUSDT order book data, and whether this predictive information can be translated into a profitable trading strategy after transaction costs.
+## Overview
 
-Order book data was collected using Python and the Binance REST API. Key market microstructure features, including OBI, OFI, bid-ask spread, midprice, and microprice, were calculated. Their relationships with future price movements were examined through correlation analysis, signal decay analysis, and backtesting.
+This project investigates whether Order Book Imbalance and Order Flow Imbalance can predict short term BTCUSDT price movements and generate profitable trading signals after transaction costs.
+Using Python and the Binance REST API, 2,000 order book snapshots were collected and analyzed.
 
-The research developed entry rules based on strong OBI signals and evaluated the effects of different holding periods and transaction costs on strategy performance. The selected strategy was then tested on an independent dataset of 2,000 order book snapshots.
+## Methodology
 
-In the final test, 50 trades were simulated, with only one remaining profitable after transaction costs. To investigate the impact of exit timing, a theoretical Best-Case Exit Analysis was conducted by selecting the most favorable observed exit price within a 30-snapshot window for each trade. Even under this assumption, 49 out of 50 trades failed to overcome transaction costs.
+Data Collection: Collected BTCUSDT bid/ask prices, volumes, and timestamps.
+Feature Engineering: Calculated OBI, OFI, bid ask spread, midprice, and microprice.
+Statistical Analysis: Examined correlations between order book features and future price movements.
+Signal Decay: Analyzed how predictive relationships change across different time horizons.
+Backtesting: Evaluated trading signals using bid ask prices, next snapshot execution, and transaction fees.
+Cost Analysis: Examined holding periods, transaction costs, and break even fees.
 
-Key Finding: Although order book imbalance may contain predictive information about short-term price movements, this statistical advantage does not necessarily translate into economic profitability when the resulting price movements are insufficient to cover trading costs.
+## Best Case Exit Analysis
 
-This Quantitative Research project focuses on market microstructure, financial data analysis, statistical signal research, and transaction-cost-aware backtesting. 
+To investigate whether poor exit timing was responsible for the strategy's losses, a theoretical best case exit analysis was conducted.
+For each trade, the most favorable observed exit price within a 30 snapshot window was selected and compared with a fixed holding period exit.
+Even with perfect hindsight, 49 out of 50 trades remained unprofitable after transaction costs.
+This suggests that the main limitation was not simply exit timing. The price movements captured by the signals were generally too small to overcome trading costs.
+
+## Key Finding
+
+Statistical predictability does not necessarily translate into economic profitability.
+Although order book imbalance showed relationships with short term price movements, these relationships did not produce a profitable strategy under the tested assumptions.
+
+## Limitations
+
+The study uses 2,000 periodic order book snapshots. The backtest does not fully model execution latency, slippage, or market impact.The best case exit analysis uses future information and represents a theoretical upper benchmark, not an executable trading strategy.
+## Conclusion
+
+This project demonstrates market microstructure research, statistical signal analysis, and transaction cost aware backtesting, emphasizing realistic evaluation and transparent reporting of negative results.
