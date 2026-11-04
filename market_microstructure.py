@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 
 ## SETTINGS
 
-COLLECT_NEW_DATA = False
+COLLECT_NEW_DATA = True
 CSV_FILE = "btcusdt_final_test.csv"
 SNAPSHOT_COUNT = 2000
 
